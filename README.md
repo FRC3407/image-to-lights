@@ -3,6 +3,9 @@
 Made by Einar S. and Rohan V-F.
 For FRC Team 3407 Wild Cards.
 
+### Note:
+This repository is a fork of QuantumKya/lights-img-loader, which is no longer being used for anything! 
+
 ## How To Use
 Make a pixel art image or gif the same size as the pixelstrip that you're going to use. When running, input the following as prompted:
 - the path to the image/gif
