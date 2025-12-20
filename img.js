@@ -25,10 +25,10 @@ function getImgData(canvas, brightness = 0.05) {
         const pixel_data_three = [];
         const colorlist = [];
         // goes through rows first starting at the top and working down? yes
-        for (row of new_pixel_data) {
+        for (const row of new_pixel_data) {
             const arr = [];
             // Pixel in selected row. Goes from left to right? yes
-            for (pixel of row) {
+            for (const pixel of row) {
                 console.log(pixel);
                 const npx = alphaToRGB(pixel, brightness);
                 const colorcompare = color => color.r === npx.r && color.g === npx.g && color.b === npx.b;
@@ -67,7 +67,7 @@ function alphaToRGB(color, brightness) {
 function generate_py_code(pixeldata, colorlist, boardinput = 'GP15') {
     // MAKE SAFE CODE FOR BOARD INPUT HERE
 
-    const pixelDataStr = '[' + pixeldata.map(row => '[' + row.join(', ') + ']').join(', ') + ']';
+    const pixelDataStr = JSON.stringify(pixeldata);
     const colorListStr = '[' + colorlist.map(clr => `(${clr.r}, ${clr.g}, ${clr.b})`).join(', ') + ']';
 
 // When defining the pixel variable, you say the width and height should be 8. 

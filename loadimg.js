@@ -23,7 +23,7 @@ async function loadImage(e) {
     }
 
     const img = new Image();
-    const url = URL.createObjectURL(file);
+    imgurl = URL.createObjectURL(file);
     
     img.onload = async () => {
         try { await img.decode(); } catch (err) { console.warn('img.decode() warning', err); }
@@ -41,15 +41,13 @@ async function loadImage(e) {
         ctx.fillRect(0, 0, img.width, img.height);
         ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, canvas.width, canvas.height);
         
-        document.querySelector('img').src = url;
-        
-        URL.revokeObjectURL(url);
+        document.querySelector('img').src = imgurl;
     };
 
     img.onerror = (err) => {
         alert('Image failed to load/parse');
         console.error('img.onerror for', file, err);
     };
-    img.src = url;
+    img.src = imgurl;
     
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="https://unpkg.com/gif-frames@1.0.1?main=bundled-min"></script>
+    <script src="https://unpkg.com/gif-frames/dist/gif-frames.js"></script>
 
     <script src="loadimg.js" defer></script>
     <script src="img.js" defer></script>
@@ -28,33 +28,7 @@
 
         }
 
-        var imgurl = new URL('');
-    </script>
-
-    <script defer>
-        function exportCode() {
-            try {
-                if (imgurl == '') return;
-
-                const fileinput = document.querySelector('input#imginput');
-                const isFile = fileinput && fileinput.files && fileinput.files[0];
-                
-                if (!isFile) {
-                    alert('Somehow no file loaded?');
-                    return;
-                }
-                
-                const file = fileinput.files[0];
-
-                if (file.type.includes('gif')) getCodeFromGif();
-                else loadFromCanvas();
-
-                document.querySelector('button#downloadbutton').style.display = 'block';
-            }
-            catch (err) {
-                alert(err.message);
-            }
-        }
+        let imgurl;
     </script>
 
     <style>
@@ -93,6 +67,36 @@
 
         <button id="downloadbutton" style="display: none; position: absolute; right: 10px; bottom: 10px;" onclick="downloadCode()">Download Code</button>
     </div>
+
+    <script defer>
+        async function exportCode() {
+            try {
+                if (imgurl == '') return;
+
+                const fileinput = document.querySelector('input#imginput');
+                const isFile = fileinput && fileinput.files && fileinput.files[0];
+                
+                if (!isFile) {
+                    alert('Somehow no file loaded?');
+                    return;
+                }
+                
+                const file = fileinput.files[0];
+                console.log(file);
+
+                if (file.type.includes('gif')) await getCodeFromGif(imgurl);
+                else await loadFromCanvas();
+
+                URL.revokeObjectURL(imgurl);
+                imgurl = '';
+
+                document.querySelector('button#downloadbutton').style.display = 'block';
+            }
+            catch (err) {
+                console.error(err.message);
+            }
+        }
+    </script>
 
 </body>
 </html>

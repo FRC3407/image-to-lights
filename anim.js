@@ -2,65 +2,76 @@ async function convertGif(gif) {
     try {
         
         const frame_data_arr = [];
-        // each element is one frame of the gif, in the same format as in img.py.
+        // each element is one frame of the gif.
         const colorlist_arr = [];
         // each element is the list of all distinct colors in the frame image.
-        await gifFrames({ url: gif, frames: 'all', cumulative: 'true', outputType: 'canvas' }).then((framedata) => {
-            for (const f of framedata.map(frame => frame.getImage())) {
-                const { frame_data, colorlist } = getImgData(f, 0.05);
-                console.log(frame_data);
-                if (!frame_data || !colorlist) {
-                    alert("getImgData returned bad");
-                    return;
-                }
-                frame_data_arr.push(frame_data);
-                colorlist_arr.push(colorlist);
+
+        const framedata = await gifFrames({ url: gif, frames: 'all', cumulative: 'true', outputType: 'canvas' });
+
+        for (const f of framedata) {
+            const cnvs = f.getImage();
+            const { pixelData, colorList } = getImgData(cnvs, 0.05);
+            console.log(pixelData);
+            if (!pixelData || !colorList) {
+                alert("getImgData returned bad");
+                return;
             }
-        });
+            frame_data_arr.push(pixelData);
+            colorlist_arr.push(colorList);
+        }
         
         const true_colorlist = [];
         // will be the array of all distinct colors in the GIF (one list, every frame)
-        const color_conversion_map = {};
-        // array of tuples, structure is ((frame //, index), color's index in true_colorlist)
-        for (const cl in colorlist_arr) {
+        const color_conversion_map = {}; // key -> index
+        const colorKey = c => `${c.r},${c.g},${c.b}`;
+        
+        for (const cl of colorlist_arr) {
             for (const col of cl) {
+                const k = colorKey(col);
+
                 // if new color, add to true_colorlist and add instruction to color_conversion_map
-                if (!true_colorlist.includes(col)) true_colorlist.push(col);
-                color_conversion_map[col] = true_colorlist.indexOf(col);
+                if (color_conversion_map[k] === undefined) {
+                    color_conversion_map[k] = true_colorlist.length;
+                    true_colorlist.push(col);
+                }
             }
         }
         
         for (let i = 0; i < frame_data_arr.length; i++) {
-            for (const r of frame_data_arr[i]) {
-                for (const c of r) {
-                    const old_color_idx = frame_data_arr[i][r][c];
+            const frame = frame_data_arr[i];
+            for (let r = 0; r < frame.length; r++) {
+                for (let c = 0; c < frame[r].length; c++) {
+                    const old_color_idx = frame[r][c];
                     const original_color = colorlist_arr[i][old_color_idx];
-                    frame_data_arr[i][r][c] = color_conversion_map[original_color];
+                    const k = colorKey(original_color);
+                    frame_data_arr[i][r][c] = color_conversion_map[k];
                 }
             }
         }
         
-        
-        
-        return { frame_data_arr, true_colorlist };
+        return { pixels: frame_data_arr, colors: true_colorlist };
         
     }
     catch (err) {
         alert('Something gone wrong in imgdata getting');
-        alert(err.message);
+        console.error(err);
         return;
     }
 }
 
 function generateCodeFromGif(framedata, colorlist, animspeed = 0.25, boardinput = 'GP15') {
     // MAKE SAFE CODE FOR BOARD INPUT HERE
+
+    // serialize framedata as JSON (keeps nested arrays) and format colorlist as Python tuples
+    const framedataStr = JSON.stringify(framedata);
+    const colorListStr = '[' + colorlist.map(clr => `(${clr.r}, ${clr.g}, ${clr.b})`).join(', ') + ']';
     
     return `import pixelstrip
 import board
 import time
 
-imgdata = ${framedata}
-colorlist = ${colorlist}
+imgdata = ${framedataStr}
+colorlist = ${colorListStr}
 
 pixel = pixelstrip.PixelStrip(board.${boardinput}, width=len(imgdata[0]), height=len(imgdata), bpp=4, pixel_order=pixelstrip.GRB, 
                         options={pixelstrip.MATRIX_COLUMN_MAJOR, pixelstrip.MATRIX_ZIGZAG})
@@ -84,11 +95,12 @@ while True:
 }
 
 
-function getCodeFromGif() {
-    // abc is the list of data for each frame; xyz is the list of colors
-    const { abc, xyz } = convertGif(imgurl);
-    
-    const code = generateCodeFromGif(abc, xyz, 0.25, 'GP15');
-    document.getElementById('pycode').innerHTML = code;
-    return code;
+async function getCodeFromGif(imgurl) {
+    convertGif(imgurl)
+    .then(res => {
+        const code = generateCodeFromGif(res.pixels, res.colors, 0.25, 'GP15');
+        document.getElementById('pycode').innerHTML = code;
+        return code;
+    })
+    .catch(err => { alert(err.message); console.error(err); });
 }
