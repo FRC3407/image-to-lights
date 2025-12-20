@@ -5,17 +5,16 @@ async function convertGif(gif) {
         // each element is one frame of the gif, in the same format as in img.py.
         const colorlist_arr = [];
         // each element is the list of all distinct colors in the frame image.
-        await gifFrames({ url: gif, frames: 'all', outputType: 'canvas' }).then((framedata) => {
-            for (const f of framedata) {
-                const frame = f.getImage();
-                const { frame_data, colorlist } = getImgData(frame);
+        await gifFrames({ url: gif, frames: 'all', cumulative: 'true', outputType: 'canvas' }).then((framedata) => {
+            for (const f of framedata.map(frame => frame.getImage())) {
+                const { frame_data, colorlist } = getImgData(f, 0.05);
                 console.log(frame_data);
                 if (!frame_data || !colorlist) {
                     alert("getImgData returned bad");
                     return;
                 }
-                frame_data_arr.append(frame_data);
-                colorlist_arr.append(colorlist);
+                frame_data_arr.push(frame_data);
+                colorlist_arr.push(colorlist);
             }
         });
         
@@ -48,7 +47,7 @@ async function convertGif(gif) {
     }
     catch (err) {
         alert('Something gone wrong in imgdata getting');
-        console.error(err);
+        alert(err.message);
         return;
     }
 }
