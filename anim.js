@@ -73,7 +73,7 @@ import time
 imgdata = ${framedataStr}
 colorlist = ${colorListStr}
 
-pixel = pixelstrip.PixelStrip(board.${boardinput}, width=len(imgdata[0]), height=len(imgdata), bpp=4, pixel_order=pixelstrip.GRB, 
+pixel = pixelstrip.PixelStrip(board.${boardinput}, width=len(imgdata[0][0]), height=len(imgdata[0]), bpp=4, pixel_order=pixelstrip.GRB, 
                         options={pixelstrip.MATRIX_COLUMN_MAJOR, pixelstrip.MATRIX_ZIGZAG})
 
 pixel.timeout = 0.0
@@ -135,8 +135,8 @@ class ImageAnimation(pixelstrip.Animation):
 
 
 if __name__ == "__main__": 
-    matrix = pixelstrip.PixelStrip(board.${boardinput}, width=${framedata[0].length}, height=${framedata.length}, bpp=4, pixel_order=pixelstrip.GRB, options={pixelstrip.MATRIX_COLUMN_MAJOR, pixelstrip.MATRIX_ZIGZAG})
-    matrix.animation = ImageAnimation(${toString(animspeed)})
+    matrix = pixelstrip.PixelStrip(board.${boardinput}, width=${framedata[0][0].length}, height=${framedata[0].length}, bpp=4, pixel_order=pixelstrip.GRB, options={pixelstrip.MATRIX_COLUMN_MAJOR, pixelstrip.MATRIX_ZIGZAG})
+    matrix.animation = ImageAnimation(${animspeed})
     while True:
         matrix.draw()`;
     
@@ -147,7 +147,7 @@ if __name__ == "__main__":
 async function getCodeFromGif(imgurl) {
     convertGif(imgurl)
     .then(res => {
-        const code = generateCodeFromGif(res.pixels, res.colors, 0.25, 'GP15');
+        const code = generateCodeFromGif(res.pixels, res.colors);
         document.getElementById('pycode').innerHTML = code;
         return code;
     })
