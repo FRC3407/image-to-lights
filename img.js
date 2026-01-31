@@ -87,7 +87,7 @@ pixel.timeout = 0.0
 pixel.clear()
 for i in range(len(imgdata)):
     for j in range(len(imgdata)):
-        pixel[i, len(imgdata)-1-j] = colorlist[imgdata[i][j]]
+        pixel[len(imgdata)-1-i, j] = colorlist[imgdata[i][j]]
 pixel.show()
 `;
 }

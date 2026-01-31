@@ -86,7 +86,7 @@ while True:
     for i in range(len(imgdata[current_frame])):
         print(imgdata[current_frame])
         for j in range(len(imgdata[current_frame][0])):
-            pixel[i, len(imgdata)-j] = colorlist[imgdata[current_frame][i][j]]
+            pixel[len(imgdata[0])-1-i, j] = colorlist[imgdata[current_frame][i][j]]
     pixel.show()
     time.sleep(${animspeed})
     current_frame += 1
@@ -129,7 +129,7 @@ class ImageAnimation(pixelstrip.Animation):
         for i in range(self.width):
             # print(self.imgdata[frame])
             for j in range(self.height):
-                matrix[i, self.height-1-j] = self.colorlist[self.imgdata[frame][i][j]]
+                matrix[self.height-1-i, j] = self.colorlist[self.imgdata[frame][i][j]]
 
 
 
