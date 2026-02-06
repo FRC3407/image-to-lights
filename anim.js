@@ -6,7 +6,7 @@ async function convertGif(gif) {
         const colorlist_arr = [];
         // each element is the list of all distinct colors in the frame image.
 
-        const framedata = await gifFrames({ url: gif, frames: 'all', cumulative: 'true', outputType: 'canvas' });
+        const framedata = await gifFrames({ url: gif, frames: 'all', cumulative: 'false', outputType: 'canvas' });
 
         for (const f of framedata) {
             const cnvs = f.getImage();
