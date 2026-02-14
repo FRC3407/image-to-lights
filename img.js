@@ -1,4 +1,4 @@
-function getImgData(canvas, brightness = 0.05) {
+function getImgData(canvas, brightness = 1) {
     try {
         const ctx = canvas.getContext('2d');
         if (!ctx) console.error('No CTX???');
@@ -43,8 +43,15 @@ function getImgData(canvas, brightness = 0.05) {
             pixel_data_three.push(arr);
         }
         
+        let exp = 1.8
+        for (let i = 0;i<colorlist.length;i++){
+            colorlist[i].r = Math.floor(13*((colorlist[i].r/13)**exp))
+            colorlist[i].g = Math.floor(13*((colorlist[i].g/13)**exp))
+            colorlist[i].b = Math.floor(13*((colorlist[i].b/13)**exp))
+        }
+
         console.log(pixel_data_three, colorlist);
-        return { pixelData: pixel_data_three, colorList: colorlist };
+        return { pixels: pixel_data_three, colors: colorlist };
         
     }
     catch (err) {
@@ -63,37 +70,8 @@ function alphaToRGB(color, brightness) {
     return { r, g, b };
 }
 
-// Generates the code that puts the image onto the lights
-function generate_py_code(pixeldata, colorlist, boardinput = 'GP15') {
-    // MAKE SAFE CODE FOR BOARD INPUT HERE
-
-    const pixelDataStr = JSON.stringify(pixeldata);
-    const colorListStr = '[' + colorlist.map(clr => `(${clr.r}, ${clr.g}, ${clr.b})`).join(', ') + ']';
-
-// When defining the pixel variable, you say the width and height should be 8. 
-// We should replace those with the width and height variables that we made earlier 
-// so that this can scale more easily to different sized pixelstrips.
-    return `import pixelstrip
-import board
-
-imgdata = ${pixelDataStr}
-colorlist = ${colorListStr}
-
-pixel = pixelstrip.PixelStrip(board.${boardinput}, width=len(imgdata[0]), height=len(imgdata), bpp=4, pixel_order=pixelstrip.GRB, 
-                        options={pixelstrip.MATRIX_COLUMN_MAJOR, pixelstrip.MATRIX_ZIGZAG})
-
-pixel.timeout = 0.0
-
-pixel.clear()
-for i in range(len(imgdata)):
-    for j in range(len(imgdata)):
-        pixel[len(imgdata)-1-i, j] = colorlist[imgdata[i][j]]
-pixel.show()
-`;
-}
-
 function loadFromCanvas() {
-    const { pixelData, colorList } = getImgData(document.querySelector('canvas#kansas'), 0.05);
+    const { pixelData, colorList } = getImgData(document.querySelector('canvas#kansas'));
 
     const pycode = generate_py_code(pixelData, colorList, 'GP15');
     document.getElementById('pycode').innerHTML = pycode;

@@ -16,7 +16,7 @@
             const code = document.getElementById('pycode').innerHTML;
             if (code == '') return;
 
-            const blob = new Blob([code]);
+            const blob = new Blob([code]);    
             const url = URL.createObjectURL(blob);
 
             const a = document.createElement('a');
@@ -56,20 +56,23 @@
 
     <canvas id="kansas" style="display: none;"></canvas>
 
-    <input type="file" id="imginput" accept=".png, .gif" onchange="loadImage(event)">
 
-    <img src="./insertimagehere.png" style="width: 500px; height: 500px; image-rendering: pixelated;">
+    <img src="./insertimagehere.png" style="width: 500px; height: 500px; image-rendering: pixelated;float:left;">
+    <textarea id = "shaderArea" style = "height:500px;width:500px;float:left"></textarea>
 
-    <button onclick="exportCode()">Get Py Code !!!</button>
+    <!-- <br>     -->
+
 
     <label for="animationclass">Use AnimationClass?</label>
     <input type="checkbox" name="animationclass" id="animationclass">
 
-    <div style="position: relative; background-color: #222; border: 2px solid lightblue; border-radius: 15px; padding: 10px; color: white;">
+    <div style="clear:both;position: relative; background-color: #222; border: 2px solid lightblue; border-radius: 15px; padding: 10px; color: white;">
         <pre id="pycode" style="text-wrap-mode: wrap;"></pre>
 
         <button id="downloadbutton" style="display: none; position: absolute; right: 10px; bottom: 10px;" onclick="downloadCode()">Download Code</button>
     </div>
+    <input type="file" id="imginput" accept=".png, .gif" style = "clear: both;" onchange="loadImage(event)">
+    <button style = "clear:both" onclick="exportCode()">Get Py Code !!!</button>
 
     <script defer>
         async function exportCode() {
@@ -87,8 +90,9 @@
                 const file = fileinput.files[0];
                 console.log(file);
 
-                if (file.type.includes('gif')) await getCodeFromGif(imgurl);
-                else await loadFromCanvas();
+                // alert(file.type)
+                await getCodeFromGif(imgurl,file.type);
+                // else await loadFromCanvas();
 
                 URL.revokeObjectURL(imgurl);
                 imgurl = '';
