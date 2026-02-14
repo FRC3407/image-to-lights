@@ -11,14 +11,14 @@ async function convertGif(gif) {
         // ==================================== GET FRAME IMAGES ==================================== //
         for (const f of framedata) {
             const cnvs = f.getImage();
-            const { pixelData, colorList } = getImgData(cnvs, 0.05);
-            console.log(pixelData);
-            if (!pixelData || !colorList) {
+            const { pixels, colors } = getImgData(cnvs, 0.05);
+            console.log(pixels);
+            if (!pixels || !colors) {
                 alert("getImgData returned bad");
                 return;
             }
-            frame_data_arr.push(pixelData);
-            colorlist_arr.push(colorList);
+            frame_data_arr.push(pixels);
+            colorlist_arr.push(colors);
         }
         
         const true_colorlist = [];
@@ -53,6 +53,12 @@ async function convertGif(gif) {
                 }
             }
         }
+
+        // for (let i = 0;i<true_colorlist.length;i++){
+        //     true_colorlist[i].r = Math.floor(13*((true_colorlist[i].r/13)**2))
+        //     true_colorlist[i].g = Math.floor(13*((true_colorlist[i].g/13)**2))
+        //     true_colorlist[i].b = Math.floor(13*((true_colorlist[i].b/13)**2))
+        // }
         
         return { pixels: frame_data_arr, colors: true_colorlist };
         
@@ -71,35 +77,56 @@ function generateCodeFromGif(framedata, colorlist, animspeed = 0.25, boardinput 
     const framedataStr = JSON.stringify(framedata);
     const colorListStr = '[' + colorlist.map(clr => `(${clr.r}, ${clr.g}, ${clr.b})`).join(', ') + ']';
     
+    let processingCode = document.getElementById("shaderArea").value
+    // alert(processingCode)
+    let selfText = document.querySelector('input#animationclass').checked ? "self." : ""
+    let preprocessingCode = ""
+    let postProcessingCode = "matrix["+selfText+"height-1-i, j] = "+selfText+"colorlist["+selfText+"imgdata[current_frame][i][j]]"
+    if (processingCode.trim() != ""){
+        postProcessingCode = "matrix["+selfText+"height-1-i, j] = (r,g,b)"
+        preprocessingCode =  `p = `+selfText+`colorlist[`+selfText+`imgdata[`+selfText+`current_frame][i][j]]
+            r = p[0]
+            g = p[1]
+            b = p[2]`
+        processingCode = processingCode.replaceAll("\n","\n            ")
+    }
+
     const nakedcode = `import pixelstrip
 import board
 import time
+import math
 
 imgdata = ${framedataStr}
 colorlist = ${colorListStr}
 
-pixel = pixelstrip.PixelStrip(board.${boardinput}, width=len(imgdata[0][0]), height=len(imgdata[0]), bpp=4, pixel_order=pixelstrip.GRB, 
-                        options={pixelstrip.MATRIX_COLUMN_MAJOR, pixelstrip.MATRIX_ZIGZAG})
+matrix = pixelstrip.PixelStrip(board.${boardinput}, width=len(imgdata[0][0]), height=len(imgdata[0]), bpp=4, pixel_order=pixelstrip.GRB, 
+                        options={pixelstrip.MATRIX_COLUMN_MAJOR, pixelstrip.MATRIX_ZIGZAG}, brightness=0.3)
 
-pixel.timeout = 0.0
+matrix.timeout = 0.0
 
-pixel.clear()
+matrix.clear()
 
 current_frame = 0
+currentTime = 0
+height = len(imgdata[0][0])
 
 while True:
     for i in range(len(imgdata[current_frame])):
-        print(imgdata[current_frame])
+        #print(imgdata[current_frame])
         for j in range(len(imgdata[current_frame][0])):
-            pixel[len(imgdata[0])-1-i, j] = colorlist[imgdata[current_frame][i][j]]
-    pixel.show()
+            ${preprocessingCode}
+            ${processingCode}
+            ${postProcessingCode}
+    matrix.show()
     time.sleep(${animspeed})
     current_frame += 1
+    currentTime += 1
     if current_frame >= len(imgdata): current_frame = 0
 `;
 
     const classistcode = `import board
 import pixelstrip
+import math
 from colors import *
 
 
@@ -115,6 +142,7 @@ class ImageAnimation(pixelstrip.Animation):
         self.frames = len(self.imgdata)
         self.width = len(self.imgdata[0][0])
         self.height = len(self.imgdata[0])
+        self.time = 0
 
     def reset(self, matrix):
         self.timeout = self.cycle_time
@@ -127,17 +155,18 @@ class ImageAnimation(pixelstrip.Animation):
             self.draw_image(matrix, self.current_frame)
             self.current_frame = (self.current_frame + 1) % self.frames
             matrix.show()
-            self.timeout = self.cycle_time
+            self.timeout = 0
+            self.time += 1
     
     def draw_image(self, matrix, frame):
+        currentTime = self.time
         matrix.fill(BLACK)
         for i in range(self.width):
             # print(self.imgdata[frame])
             for j in range(self.height):
-                matrix[self.height-1-i, j] = self.colorlist[self.imgdata[frame][i][j]]
-
-
-
+                ${preprocessingCode}
+                ${processingCode}
+                ${postProcessingCode}
 
 if __name__ == "__main__": 
     matrix = pixelstrip.PixelStrip(board.${boardinput}, width=${framedata[0][0].length}, height=${framedata[0].length}, bpp=4, pixel_order=pixelstrip.GRB, options={pixelstrip.MATRIX_COLUMN_MAJOR, pixelstrip.MATRIX_ZIGZAG})
@@ -149,12 +178,16 @@ if __name__ == "__main__":
 }
 
 
-async function getCodeFromGif(imgurl) {
-    convertGif(imgurl)
-    .then(res => {
-        const code = generateCodeFromGif(res.pixels, res.colors);
+async function getCodeFromGif(imgurl,type) {
+    let res
+    if (type.includes("gif")) res = await convertGif(imgurl)
+    else {res = await getImgData(document.querySelector('canvas#kansas'), 0.05); res.pixels = [res.pixels]}
+    try{
+        const code = generateCodeFromGif(res.pixels, res.colors,0);
         document.getElementById('pycode').innerHTML = code;
         return code;
-    })
-    .catch(err => { alert(err.message); console.error(err); });
+    }
+    catch(err){
+        alert(err.stack); console.error(err);
+    }
 }
