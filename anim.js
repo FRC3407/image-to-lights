@@ -6,7 +6,7 @@ async function convertGif(gif) {
         const colorlist_arr = [];
         // each element is the list of all distinct colors in the corresponding frame image.
 
-        const framedata = await gifFrames({ url: gif, frames: 'all', cumulative: 'false', outputType: 'canvas' });
+        const framedata = await gifFrames({ url: gif, frames: 'all', outputType: 'canvas' });
 
         // ==================================== GET FRAME IMAGES ==================================== //
         for (const f of framedata) {
@@ -49,7 +49,7 @@ async function convertGif(gif) {
                     const old_color_idx = frame[r][c]; // get colorid for corresponding colorlist
                     const original_color = colorlist_arr[i][old_color_idx]; // get that color
                     const k = colorKey(original_color); // encode to color string
-                    frame_data_arr[i][r][c] = color_conversion_map[k]; // replace with the index in the comprehensive colormap
+                    frame[r][c] = color_conversion_map[k]; // replace with the index in the comprehensive colormap
                 }
             }
         }
