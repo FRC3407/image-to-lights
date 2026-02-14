@@ -4,10 +4,11 @@ async function convertGif(gif) {
         const frame_data_arr = [];
         // each element is one frame of the gif.
         const colorlist_arr = [];
-        // each element is the list of all distinct colors in the frame image.
+        // each element is the list of all distinct colors in the corresponding frame image.
 
-        const framedata = await gifFrames({ url: gif, frames: 'all', cumulative: 'false', outputType: 'canvas' });
+        const framedata = await gifFrames({ url: gif, frames: 'all', outputType: 'canvas' });
 
+        // ==================================== GET FRAME IMAGES ==================================== //
         for (const f of framedata) {
             const cnvs = f.getImage();
             const { pixelData, colorList } = getImgData(cnvs, 0.05);
@@ -24,7 +25,8 @@ async function convertGif(gif) {
         // will be the array of all distinct colors in the GIF (one list, every frame)
         const color_conversion_map = {}; // key -> index
         const colorKey = c => `${c.r},${c.g},${c.b}`;
-        
+
+        // ==================================== COLOR PROCESSING ==================================== //
         for (const cl of colorlist_arr) {
             for (const col of cl) {
                 const k = colorKey(col);
@@ -36,15 +38,18 @@ async function convertGif(gif) {
                 }
             }
         }
-        
+
+        // ==================================== FRAME PROCESSING ==================================== //
         for (let i = 0; i < frame_data_arr.length; i++) {
+            // Iterate through each frame
             const frame = frame_data_arr[i];
             for (let r = 0; r < frame.length; r++) {
                 for (let c = 0; c < frame[r].length; c++) {
-                    const old_color_idx = frame[r][c];
-                    const original_color = colorlist_arr[i][old_color_idx];
-                    const k = colorKey(original_color);
-                    frame_data_arr[i][r][c] = color_conversion_map[k];
+                    // Iterate through rows and columns for pixels (c, r)
+                    const old_color_idx = frame[r][c]; // get colorid for corresponding colorlist
+                    const original_color = colorlist_arr[i][old_color_idx]; // get that color
+                    const k = colorKey(original_color); // encode to color string
+                    frame[r][c] = color_conversion_map[k]; // replace with the index in the comprehensive colormap
                 }
             }
         }
