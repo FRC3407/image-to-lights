@@ -179,15 +179,18 @@ if __name__ == "__main__":
 
 
 async function getCodeFromGif(imgurl,type) {
-    let res
-    if (type.includes("gif")) res = await convertGif(imgurl)
-    else {res = await getImgData(document.querySelector('canvas#kansas'), 0.05); res.pixels = [res.pixels]}
-    try{
+    let res;
+    if (type.includes("gif")) res = await convertGif(imgurl);
+    else {
+        res = getImgData(document.querySelector('canvas#kansas'), 0.05);
+        res.pixels = [res.pixels];
+    }
+    try {
         const code = generateCodeFromGif(res.pixels, res.colors,0);
         document.getElementById('pycode').innerHTML = code;
         return code;
     }
-    catch(err){
+    catch(err) {
         alert(err.stack); console.error(err);
     }
 }

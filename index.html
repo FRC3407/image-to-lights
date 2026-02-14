@@ -60,8 +60,6 @@
     <img src="./insertimagehere.png" style="width: 500px; height: 500px; image-rendering: pixelated;float:left;">
     <textarea id = "shaderArea" style = "height:500px;width:500px;float:left"></textarea>
 
-    <!-- <br>     -->
-
 
     <label for="animationclass">Use AnimationClass?</label>
     <input type="checkbox" name="animationclass" id="animationclass">
@@ -91,7 +89,7 @@
                 console.log(file);
 
                 // alert(file.type)
-                await getCodeFromGif(imgurl,file.type);
+                await getCodeFromGif(imgurl, file.type);
                 // else await loadFromCanvas();
 
                 URL.revokeObjectURL(imgurl);
