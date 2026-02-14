@@ -1,4 +1,4 @@
-function getImgData(canvas, brightness = 1) {
+function getImgData(canvas) {
     try {
         const ctx = canvas.getContext('2d');
         if (!ctx) console.error('No CTX???');
@@ -30,7 +30,7 @@ function getImgData(canvas, brightness = 1) {
             // Pixel in selected row. Goes from left to right? yes
             for (const pixel of row) {
                 console.log(pixel);
-                const npx = alphaToRGB(pixel, brightness);
+                const npx = alphaToRGB(pixel);
                 const colorcompare = color => color.r === npx.r && color.g === npx.g && color.b === npx.b;
                 if (!colorlist.find(colorcompare)) {
                     arr.push(colorlist.length);
@@ -62,18 +62,10 @@ function getImgData(canvas, brightness = 1) {
 }
 
 // applies the alpha (brightness) to the colors to take in RGBA and output an RGB value.
-function alphaToRGB(color, brightness) {
+function alphaToRGB(color) {
     const a = (color.a ?? 255) / 255;
-    const r = Math.round(color.r * a * brightness);
-    const g = Math.round(color.g * a * brightness);
-    const b = Math.round(color.b * a * brightness);
+    const r = Math.round(color.r * a);
+    const g = Math.round(color.g * a);
+    const b = Math.round(color.b * a);
     return { r, g, b };
-}
-
-function loadFromCanvas() {
-    const { pixelData, colorList } = getImgData(document.querySelector('canvas#kansas'));
-
-    const pycode = generate_py_code(pixelData, colorList, 'GP15');
-    document.getElementById('pycode').innerHTML = pycode;
-    return pycode;
 }
