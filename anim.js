@@ -111,9 +111,9 @@ currentTime = 0
 height = len(imgdata[0][0])
 
 while True:
-    for i in range(len(imgdata[current_frame])):
+    for i in range(len(imgdata[current_frame][0])):
         #print(imgdata[current_frame])
-        for j in range(len(imgdata[current_frame][0])):
+        for j in range(len(imgdata[current_frame])):
             ${preprocessingCode}
             ${processingCode}
             ${postProcessingCode}
@@ -161,9 +161,9 @@ class ImageAnimation(pixelstrip.Animation):
     def draw_image(self, matrix, frame):
         currentTime = self.time
         matrix.fill(BLACK)
-        for i in range(self.width):
+        for i in range(self.height):
             # print(self.imgdata[frame])
-            for j in range(self.height):
+            for j in range(self.width):
                 ${preprocessingCode}
                 ${processingCode}
                 ${postProcessingCode}
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 }
 
 
-async function getCodeFromGif(imgurl,type) {
+async function getCodeFromGif(imgurl, type) {
     let res;
     if (type.includes("gif")) res = await convertGif(imgurl);
     else {
